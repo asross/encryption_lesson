@@ -69,8 +69,8 @@
       $('#decrypted_text').text(to_text(xor(bytestring, key)));
     });
 
-    // Load thyself! Note if you're looking at this in the <pre>, you won't catch the distinction between < and &amp;lt;.
-    $('#one_time_pad_pre').html($("script#one_time_pad_code").html().replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+    // Load thyself!
+    $('#one_time_pad_pre').text($("script#one_time_pad_code").html());
   });
 </script>
 
