@@ -1,0 +1,126 @@
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+<script type="text/javascript" id="one_time_pad_code">  function one_time_pad(n) {
+    pad = "";
+    for (i=0; i<n; i++)
+      pad += Number(Math.random() < 0.5);
+    return pad;
+  }
+
+  function xor(text, key) {
+    result = "";
+    for (i=0; i<text.length; i++)
+      result += Number(text[i] != key[i]);
+    return result;
+  }
+
+  function to_binary(n) {
+    result = "";
+    while (n >= 1) {
+      bit = Number(n%2 == 1);
+      result = bit + result;
+      n = (n-bit)/2;
+    }
+    while (result.length < 8)
+      result = "0" + result;
+    return result;
+  }
+
+  function to_decimal(s) {
+    s = s.split("").reverse();
+    result = 0;
+    for (i=0; i<s.length; i++)
+      if (s[i] == "1") result += Math.pow(2, i);
+    return result;
+  }
+
+  function to_bytestring(text) {
+    bytestring = "";
+    for (i=0; i<text.length; i++)
+      bytestring = to_binary(text.charCodeAt(i)) + bytestring;
+    return bytestring;
+  }
+
+  function to_text(bytestring) {
+    text = "";
+    while (bytestring != "") {
+      bite = bytestring.slice(0, 8);
+      text = String.fromCharCode(to_decimal(bite)) + text;
+      bytestring = bytestring.slice(8, bytestring.length);
+    }
+    return text;
+  }
+
+  $(document).ready(function() {
+    $('#generate_pad').click(function() {
+      $('#one_time_pad').text(one_time_pad(1500));
+    });
+
+    $('#encrypt').click(function() {
+      text = $('#text').val();
+      key = $('#pad').val();
+      if (key.length < text.length*8) { alert("Need a longer one-time pad."); return; }
+      $('#encrypted_text').text(xor(to_bytestring(text), key));
+    });
+
+    $('#decrypt').click(function() {
+      key = $('#epad').val();
+      bytestring = $('#etext').val();
+      if (key.length < bytestring.length) { alert("Need a longer one-time pad."); return; }
+      $('#decrypted_text').text(to_text(xor(bytestring, key)));
+    });
+
+    // Load thyself! Note if you're looking at this in the <pre>, you won't catch the distinction between < and &amp;lt;.
+    $('#one_time_pad_pre').html($("script#one_time_pad_code").html().replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+  });
+</script>
+
+<h1> Cryptography and the One-Time Pad </h1>
+
+<p> Today we're going to talk about encryption and secrecy. </p>
+
+<p> The one-time pad is a very simple cryptographic technique that is impossible to crack. You can <a href="http://en.wikipedia.org/wiki/One-time_pad">read more about it</a> if you want. It was used during WWII at Bletchley Park and many other places. </p>
+
+<p> Here is a message I want to send you: </p>
+<pre>   From this background the future composer developed early on a permanent sense of exile, "always an intruder, never welcomed". 
+</pre>
+
+<p> Using <a href="http://www.danshort.com/ASCIImap/">ASCII mappings</a> (where e.g. "F" -&gt; 70 -&gt; <code>01000110</code>) I shall transform it to a string of bits, as is my fancy: </p>
+<pre>  0010111000100010011001000110010101101101011011110110001101101100011001010111011100100000011100100110010101110110011001010110111000100000001011000111001001100101011001000111010101110010011101000110111001101001001000000110111001100001001000000111001101111001011000010111011101101100011000010010001000100000001011000110010101101100011010010111100001100101001000000110011001101111001000000110010101110011011011100110010101110011001000000111010001101110011001010110111001100001011011010111001001100101011100000010000001100001001000000110111001101111001000000111100101101100011100100110000101100101001000000110010001100101011100000110111101101100011001010111011001100101011001000010000001110010011001010111001101101111011100000110110101101111011000110010000001100101011100100111010101110100011101010110011000100000011001010110100001110100001000000110010001101110011101010110111101110010011001110110101101100011011000010110001000100000011100110110100101101000011101000010000001101101011011110111001001000110
+</pre>
+
+<p> Now I generate a <i>random</i> string of bits of more-or-less equal length. This is my one-time pad: </p>
+<pre>  110101110110100011100010000111000010001000101001001101001001101000111101101110000101011011000101110011100011111010000111011001101010011010001110110100001000000100011000001100110101001011110000100101100100011100111000110101010001010100101101100010100101011110010100111010101011111100000111101110100011010100100101111111110110101011000000011111100101001110100011011110110000100101110001100110000101000101011010000011011111110101100100011010011110110000000010011111111011101001001111000111000110111000111011110000000010111101101000100101100000101111110111000000100101101110000011010010110000000110110100011110010100101111010101000011101000000000010011101011110100001101011101011110110110100111111111010111011011011101011001101110110010001010010001111111000011011011110101100100001111100101011100111011011100110000110111111011010000101100010101101101101110100110011101110010001110110000010011100000000010110110110100000001000010111010110111101101000011000101100110111010110001010101011100001011100110101110010111001011100000010110100110000101000001000110111010110101000111110001111110010011111110101011001001111101100011011000111111101100100010010001110100001011011010010011110111000111111100100001010110000001111110100111011111100010111010001001111101000011101011011001001101010101001111001100111011010010011111100101001000110010100011100101011110010010010101001001011011101011100101000110000011101011110100001100011110010101100010101000110001101010101110100000011101110111011110101110101000011000000001 </pre>
+
+<p> I XOR this random string of bits with the bit representation of my text string to obtain the following: </p>
+
+<pre>  1111100101001010100001100111100101001111010001100101011111110110010110001100111101110110101101111010101101001000111000100000100010000110101000101010001011100100011111000100011000100000100001001111100000101110000110001011101101110100000011011111100100101110111101011001110111010011011001101001100000010101000010011001101000000110101010010000011000110110100000110001110101100110010100011111110100100010001101000110100010001110010001000001110110000010011001110001000111011011001000100110111000001011010010111110000001001110010010001111100001100100110101110111101100110111111100010010101001100100100101000001110100101110101001010110000111101100011101101101100100100110001110010101101100011011100110100010111011011000001010011101011001001101111100101101110001010011100001111110010110001101001010011000101111101100010100101000010101111111001101011101001010000111111010001010011110011110011101001110101101001110110101010110011000001110110001001101110101011001000100101100101101111000001100110101110000101101</pre>
+
+
+<p> What's cool about XORing something with something random is (1) the output is also completely random, and (2) you can recover the nonrandom input by XORing again (and <i>only</i> by XORing again). Example: </p>
+<pre>  string = 11111
+  random = 01011 (totally random)
+  xor    = 10100 (still totally random)
+  xorxor = 11111
+</pre>
+
+<p> You'll probably have learned that when you XOR something twice, no matter what you XOR it with, you get back the original thing -- as long as you XOR it with the same thing both times. It's a reversible operation if and only if we use the same string twice. In addition, XORing text with a random string totally randomizes that text. These two facts together mean we can use XORing as an encryption scheme, provided we share a random string of bits that only we know about. This is called a one-time pad. Technically we could use it more than once, but I posit to you that our scheme would start to become guessable if we did so. It is definitively not guessable if we only do it once, though (using that particular pad). Can you explain why? </p>
+
+<p> Here is a little playground to try out one-time pad encryption: </p><br>
+
+<input id="generate_pad" type="button" value="Generate One Time Pad"> <br>
+<code id="one_time_pad"></code> <br> <br>
+
+<textarea id="text" type="string" placeholder="Enter text"></textarea> <br>
+<textarea id="pad" type="string" placeholder="Enter one time pad"></textarea> <br>
+<input id="encrypt" type="button" value="Encrypt"> <br>
+<code id="encrypted_text"></code><br><br>
+
+<textarea id="etext" type="string" placeholder="Enter encrypted bits"></textarea> <br>
+<textarea id="epad" type="string" placeholder="Enter one time pad"></textarea> <br>
+<input id="decrypt" type="button" value="Decrypt"> <br>
+<code id="decrypted_text"></code><br><br>
+
+<p> Try messing with the one-time pad and seeing how utterly screwy the resulting text is if you don't match the one-time pad perfectly. </p>
+
+<p> If you're interested, I wrote the following code to make all this work: </p>
+<pre id="one_time_pad_pre"> </pre>
